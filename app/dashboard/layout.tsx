@@ -1,18 +1,21 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Sidebar from "@/app/dashboard/_components/sidebar";
 import { useMediaQuery } from "react-responsive";
 import { useNav } from "@/hooks/useNav";
 import ContentLayout from "@/app/dashboard/_side-content/content-layout";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+  const [updateRef, setUpdateRef] = useState(false);
   const isTabletOrMobile = useMediaQuery({ maxWidth: 800 });
   const { isMobile } = useNav();
-  const contentRef: React.MutableRefObject<React.JSX.Element> = useRef(<></>);
+  const contentRef: React.MutableRefObject<React.JSX.Element | null> =
+    useRef(null);
 
   useEffect(() => {
     contentRef.current = <ContentLayout />;
-  }, [isTabletOrMobile, isMobile]);
+    setUpdateRef(true);
+  }, []);
 
   return (
     <div
