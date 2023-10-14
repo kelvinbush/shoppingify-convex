@@ -1,5 +1,9 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { useNav } from "@/hooks/useNav";
+import { usePathname } from "next/navigation";
 
 const LinkItem = ({
   href,
@@ -8,10 +12,17 @@ const LinkItem = ({
   href: string;
   children: React.ReactNode;
 }) => {
-  let isActive = false;
+  const pathname = usePathname();
+  let isActive = pathname.includes(href);
+
+  const { onSetIsMobile } = useNav();
 
   return (
-    <Link href={href} className={"relative"}>
+    <Link
+      href={href}
+      className={"relative"}
+      onClick={() => onSetIsMobile(false)}
+    >
       {children}
       {isActive && (
         <span
