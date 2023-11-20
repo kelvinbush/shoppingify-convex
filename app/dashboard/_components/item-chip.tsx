@@ -2,11 +2,13 @@
 
 import React from "react";
 import { Plus } from "lucide-react";
+import { useNav } from "@/hooks/useNav";
 
 function ItemChip({ name, id }: { name: string; id: string }) {
+  const { onSetActive } = useNav();
   return (
     <div
-      onClick={() => console.log("clicked:", name, "with id:", id)}
+      onClick={() => onSetActive("view-item", id)}
       className={
         "flex cursor-pointer items-start justify-between gap-y-2 rounded-lg bg-white p-3 text-sm font-medium text-black shadow transition-shadow hover:shadow-md"
       }

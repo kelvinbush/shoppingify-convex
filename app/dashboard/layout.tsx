@@ -1,39 +1,43 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import Sidebar from "@/app/dashboard/_components/sidebar";
-import { useMediaQuery } from "react-responsive";
+import SideLayout from "@/app/dashboard/_side-content/sideLayout";
 import { useNav } from "@/hooks/useNav";
-import ContentLayout from "@/app/dashboard/_side-content/content-layout";
+import AddItem from "@/app/dashboard/_side-content/add-item/add-item";
+import ViewItem from "@/app/dashboard/_side-content/view-item/view-item";
+import ListShopping from "@/app/dashboard/_side-content/list/list-shopping";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const [updateRef, setUpdateRef] = useState(false);
-  const isTabletOrMobile = useMediaQuery({ maxWidth: 800 });
-  const { isMobile } = useNav();
-  const contentRef: React.MutableRefObject<React.JSX.Element | null> =
-    useRef(null);
-
-  useEffect(() => {
-    contentRef.current = <ContentLayout />;
-    setUpdateRef(true);
-  }, []);
+  const { isMobile, active } = useNav();
+  let content: null | React.ReactNode;
+  switch (active) {
+    case "add-item":
+      content = <AddItem />;
+      break;
+    case "view-item":
+      content = <ViewItem />;
+      break;
+    case "list":
+      content = <ListShopping />;
+      break;
+    default:
+      content = <AddItem />;
+      break;
+  }
 
   return (
     <div
       className={
-        "grid grid-cols-[max-content,1fr] bg-slate-100 md:grid-cols-[max-content,1fr,380px]"
+        "grid grid-cols-[max-content,1fr] bg-slate-100 md:grid-cols-[max-content,1fr,400px]"
       }
     >
       <Sidebar />
-      {isTabletOrMobile ? (
-        isMobile ? (
-          contentRef.current
-        ) : (
-          children
-        )
+      {isMobile ? (
+        <SideLayout>{content}</SideLayout>
       ) : (
         <>
-          {children}
-          {contentRef.current}
+          <div className={"h-screen"}>{children}</div>
+          <SideLayout>{content}</SideLayout>
         </>
       )}
     </div>

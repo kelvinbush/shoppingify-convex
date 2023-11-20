@@ -2,7 +2,7 @@ import React from "react";
 import { auth } from "@clerk/nextjs";
 
 async function Page() {
-  const { userId, getToken } = auth();
+  const { getToken } = auth();
 
   const token = await getToken();
   return (
