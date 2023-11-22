@@ -1,10 +1,12 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import ListChip from "@/app/dashboard/_components/list-chip";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useListStore } from "@/hooks/use-list";
+import { useNav } from "@/hooks/useNav";
 
 const sampleItems = [
   {
@@ -31,6 +33,37 @@ const sampleItems = [
 
 const ListShopping = () => {
   const [isEditing, setIsEditing] = useState("0");
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const {
+    totalItems,
+    items,
+    setActiveItem,
+    activeItemId,
+    decrementItem,
+    incrementItem,
+    removeItem,
+    updateItem,
+  } = useListStore();
+  const { onSetActive } = useNav();
+
+  const asyncFetch = async () => {
+    try {
+      const response = await fetch("/api/active");
+      const data = await response.json();
+      if ("message" in data) {
+        setIsCompleting(false);
+      } else {
+        setIsCompleting(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    asyncFetch();
+  }, []);
 
   return (
     <div className={"h-full bg-[#FFF0DE] px-4 py-6"}>
@@ -54,6 +87,7 @@ const ListShopping = () => {
             className={
               "rounded-xl bg-white px-8 text-sm font-bold text-[#34333A] hover:bg-[#F2F2F2]"
             }
+            onClick={() => onSetActive("add-item")}
           >
             Add item
           </Button>
@@ -64,18 +98,33 @@ const ListShopping = () => {
         <Pencil size={"20px"} className={"shrink-0 cursor-pointer"} />
       </div>
       <ScrollArea className={"h-[71vh]"}>
-        <div className={"mb-20 space-y-4 pr-4"}>
-          {sampleItems.map((item) => (
-            <ListChip
-              key={item.id}
-              id={item.id}
-              name={item.name}
-              quantity={item.quantity}
-              isEditing={item.id === isEditing}
-              onSetIsEditing={setIsEditing}
-            />
-          ))}
-        </div>
+        {!loading && !isCompleting && totalItems === 0 && <EmptyList />}
+        {!loading && !isCompleting && totalItems > 0 && (
+          <div className={"mb-20 space-y-4 pr-4"}>
+            {items.map((item) => (
+              <ListChip
+                key={item.itemId}
+                id={item.itemId}
+                name={item.name}
+                quantity={item.quantity}
+                isActive={activeItemId === item.itemId}
+                onSetIsActive={setActiveItem}
+                incrementItem={incrementItem}
+                decrementItem={decrementItem}
+                removeItem={removeItem}
+                updateItem={updateItem}
+              />
+            ))}
+          </div>
+        )}
+        {loading && <p className={"text-center text-sm"}>Loading...</p>}
+        {!loading && isCompleting && (
+          <div>
+            <p className={"text-center text-sm"}>
+              You have completed your shopping
+            </p>
+          </div>
+        )}
       </ScrollArea>
       <div className={"fixed bottom-0 right-0 w-[400px] bg-white p-4"}>
         <Button
@@ -91,3 +140,18 @@ const ListShopping = () => {
 };
 
 export default ListShopping;
+
+const EmptyList = () => {
+  return (
+    <div className={"flex h-[71vh] flex-col items-center"}>
+      <p className={"mb-2 mt-auto text-xl font-bold"}>No items</p>
+      <Image
+        src={"/images/empty.svg"}
+        alt={"empty"}
+        height={250}
+        width={250}
+        className={"mt-auto"}
+      />
+    </div>
+  );
+};

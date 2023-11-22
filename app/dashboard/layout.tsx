@@ -6,6 +6,7 @@ import { useNav } from "@/hooks/useNav";
 import AddItem from "@/app/dashboard/_side-content/add-item/add-item";
 import ViewItem from "@/app/dashboard/_side-content/view-item/view-item";
 import ListShopping from "@/app/dashboard/_side-content/list/list-shopping";
+import { useListStore } from "@/hooks/use-list";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isMobile, active } = useNav();

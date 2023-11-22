@@ -3,9 +3,11 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { useNav } from "@/hooks/useNav";
+import { useListStore } from "@/hooks/use-list";
 
-function ItemChip({ name, id }: { name: string; id: string }) {
-  const { onSetActive } = useNav();
+const ItemChip = ({ name, id }: { name: string; id: string }) => {
+  const { onSetActive, active } = useNav();
+  const { addItem } = useListStore();
   return (
     <div
       onClick={() => onSetActive("view-item", id)}
@@ -14,9 +16,18 @@ function ItemChip({ name, id }: { name: string; id: string }) {
       }
     >
       <p>{name}</p>
-      <Plus color={"#C1C1C4"} size={24} className={"basis-[24px] self-start"} />
+      <Plus
+        color={"#C1C1C4"}
+        size={24}
+        className={"basis-[24px] cursor-pointer self-start"}
+        onClick={(e) => {
+          addItem(id, name);
+          active !== "list" && onSetActive("list");
+          e.stopPropagation();
+        }}
+      />
     </div>
   );
-}
+};
 
 export default ItemChip;
