@@ -2,39 +2,18 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
 import ListChip from "@/app/dashboard/_components/list-chip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useListStore } from "@/hooks/use-list";
 import { useNav } from "@/hooks/useNav";
-
-const sampleItems = [
-  {
-    id: "1",
-    name: "Milk",
-    quantity: 1,
-  },
-  {
-    id: "2",
-    name: "Bread",
-    quantity: 1,
-  },
-  {
-    id: "3",
-    name: "Eggs",
-    quantity: 1,
-  }, // generate 20 more items
-  ...Array.from({ length: 20 }, (_, index) => ({
-    id: `${index + 4}`,
-    name: `Item ${index + 4}`,
-    quantity: 1,
-  })),
-];
+import { Input } from "@/components/ui/input";
+import CompleteItem from "@/app/dashboard/_components/complete-item";
 
 const ListShopping = () => {
-  const [isEditing, setIsEditing] = useState("0");
   const [isCompleting, setIsCompleting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [postLoading, setPostLoading] = useState(false);
+  const [activeData, setActiveData] = useState<ShoppingList | null>(null);
   const {
     totalItems,
     items,
@@ -44,20 +23,64 @@ const ListShopping = () => {
     incrementItem,
     removeItem,
     updateItem,
+    name,
+    setNewListName,
   } = useListStore();
   const { onSetActive } = useNav();
 
   const asyncFetch = async () => {
+    setLoading(true);
     try {
       const response = await fetch("/api/active");
       const data = await response.json();
-      if ("message" in data) {
+      if (data.result === null) {
         setIsCompleting(false);
       } else {
         setIsCompleting(true);
+        setActiveData(data.result);
       }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+    }
+  };
+
+  const asyncPost = async () => {
+    setPostLoading(true);
+    try {
+      const response = await fetch("/api/active", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, items }),
+      });
+      await response.json();
+      setPostLoading(false);
+      asyncFetch();
     } catch (error) {
       console.log(error);
+      setPostLoading(false);
+    }
+  };
+
+  const asyncUpdate = async (listItemId: string) => {
+    setPostLoading(true);
+    try {
+      const response = await fetch("/api/active", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ listItemId }),
+      });
+      await response.json();
+      setPostLoading(false);
+      asyncFetch();
+    } catch (error) {
+      console.log(error);
+      setPostLoading(false);
     }
   };
 
@@ -93,10 +116,7 @@ const ListShopping = () => {
           </Button>
         </div>
       </div>
-      <div className={"mt-3 flex items-center justify-between"}>
-        <h3 className={"text-xl font-bold"}>Shopping list</h3>
-        <Pencil size={"20px"} className={"shrink-0 cursor-pointer"} />
-      </div>
+      <h3 className={"mt-3 text-xl font-bold"}>{name}</h3>
       <ScrollArea className={"h-[71vh]"}>
         {!loading && !isCompleting && totalItems === 0 && <EmptyList />}
         {!loading && !isCompleting && totalItems > 0 && (
@@ -113,26 +133,44 @@ const ListShopping = () => {
                 decrementItem={decrementItem}
                 removeItem={removeItem}
                 updateItem={updateItem}
+                isCompleting={isCompleting}
               />
             ))}
           </div>
         )}
         {loading && <p className={"text-center text-sm"}>Loading...</p>}
         {!loading && isCompleting && (
-          <div>
-            <p className={"text-center text-sm"}>
-              You have completed your shopping
-            </p>
+          <div className={"mb-20 space-y-4 pr-4"}>
+            {activeData?.listItems.map((item) =>
+              CompleteItem({
+                id: item.id,
+                name: item.item.name,
+                quantity: item.quantity,
+                isPurchased: item.isPurchased,
+                onPurchaseItem: async (listItemId) =>
+                  await asyncUpdate(listItemId),
+              }),
+            )}
           </div>
         )}
       </ScrollArea>
-      <div className={"fixed bottom-0 right-0 w-[400px] bg-white p-4"}>
+      <div
+        className={"fixed bottom-0 right-0 flex w-[400px] gap-x-2 bg-white p-4"}
+      >
+        <Input
+          placeholder={"List name"}
+          value={name}
+          onChange={(e) => setNewListName(e.target.value)}
+          className={"flex-1"}
+        />
         <Button
           className={
-            "rounded-xl bg-[#F9A10A] px-8 text-sm font-bold text-white"
+            "rounded-xl bg-primary-orange px-3 py-2 text-sm font-bold text-white"
           }
+          onClick={asyncPost}
+          disabled={loading || postLoading}
         >
-          Send to shopper
+          Save list
         </Button>
       </div>
     </div>

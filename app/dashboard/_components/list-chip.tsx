@@ -7,6 +7,7 @@ interface ListChipProps {
   name: string;
   quantity: number;
   isActive: boolean;
+  isCompleting: boolean;
   incrementItem: (cartItemId: string) => void;
   decrementItem: (cartItemId: string) => void;
   removeItem: (cartItemId: string) => void;

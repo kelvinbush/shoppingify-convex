@@ -33,6 +33,7 @@ type ShoppingList = {
 };
 
 type ListItem = {
+  isPurchased: boolean;
   id: string;
   quantity: number;
   isActive: boolean;
@@ -40,6 +41,7 @@ type ListItem = {
   updatedAt: Date;
   itemId: string;
   shoppingListId: string;
+  item: Item;
 };
 
 type CartItem = {
