@@ -1,13 +1,9 @@
 import React from "react";
-import { auth } from "@clerk/nextjs";
 
 async function Page() {
-  const { getToken } = auth();
-
-  const token = await getToken();
   return (
     <div>
-      <h1>Dashboard: {token}</h1>
+      <h1>Dashboard: dash</h1>
     </div>
   );
 }

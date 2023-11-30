@@ -1,9 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import { ModalProvider } from "@/providers/modal-provider";
 import { ToastProvider } from "@/providers/toast-provider";
+import { ConvexClientProvider } from "@/providers/convex-client-provider";
 
 const quicksand = Quicksand({ subsets: ["latin"] });
 
@@ -18,14 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={quicksand.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={quicksand.className}>
+        <ConvexClientProvider>
           <ToastProvider />
           <ModalProvider />
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </ConvexClientProvider>
+      </body>
+    </html>
   );
 }
