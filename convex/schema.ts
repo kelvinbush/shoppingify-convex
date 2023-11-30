@@ -14,7 +14,7 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     note: v.optional(v.string()),
     userId: v.string(),
-    categoryId: v.optional(v.id("categories")),
+    categoryId: v.id("categories"),
     isActive: v.boolean(),
   })
     .index("by_user", ["userId"])

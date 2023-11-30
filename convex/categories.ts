@@ -13,6 +13,16 @@ export const createCategory = mutation({
 
     const userId = identity.subject;
 
+    // check if category already exists
+
+    const existingCategory = await ctx.db
+      .query("categories")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("name"), args.name))
+      .collect();
+
+    if (existingCategory.length > 0) throw new Error("Category already exists");
+
     return await ctx.db.insert("categories", {
       name: args.name,
       userId,

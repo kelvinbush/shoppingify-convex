@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { Icons } from "../ui/icons";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const schema = z.object({
   name: z.string().min(3, "Name must contain at least 3 characters").max(255),
@@ -25,6 +27,7 @@ const schema = z.object({
 
 export const CategoryModal = () => {
   const categoryModal = useCategoryModal();
+  const create = useMutation(api.categories.createCategory);
   const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof schema>>({
@@ -35,23 +38,19 @@ export const CategoryModal = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof schema>) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      await fetch("/api/categories", {
-        method: "POST",
-        body: JSON.stringify(values),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      toast.success("Category created");
-      categoryModal.onClose();
+      const response = await create(values);
+      if (response) {
+        toast.success("Category created!");
+        categoryModal.onClose();
+      }
     } catch (error) {
-      toast.error("Failed to create store");
-      console.log(error);
-    } finally {
-      setLoading(false);
+      if (error instanceof Error && error.message.includes("already exists")) {
+        toast.error("Category already exists");
+      }
     }
+    setLoading(false);
   };
 
   return (
