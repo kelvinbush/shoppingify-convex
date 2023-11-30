@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, PlusCircle } from "lucide-react";
+import { Check, ChevronsUpDown, PlusCircle, Trash } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -33,15 +33,19 @@ import {
 import { useCategoryModal } from "@/hooks/use-category-modal";
 import { Icons } from "@/components/ui/icons";
 import { useNav } from "@/hooks/useNav";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import CategoryAlertModal from "@/components/modals/category-alert-modal";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters" }),
   note: z.string().optional(),
-  category: z.string({
-    required_error: "Please select a category",
-  }),
+  category: z
+    .string({
+      required_error: "Please select a category",
+    })
+    .min(1, { message: "Please select a category" }),
   imageUrl: z.string().optional(),
 });
 
@@ -49,8 +53,12 @@ type AddItemFormValues = z.infer<typeof formSchema>;
 
 const AddItem = () => {
   const categories = useQuery(api.categories.getCategories);
+  const deleteCategory = useMutation(api.categories.archiveCategory);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Id<"categories">>();
   const categoryModal = useCategoryModal();
   const { onSetActive } = useNav();
   const form = useForm<AddItemFormValues>({
@@ -59,21 +67,37 @@ const AddItem = () => {
 
   const onSubmit = async (data: AddItemFormValues) => {
     try {
-      await fetch("/api/items", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      console.log({ data });
       form.reset();
     } catch (error) {
       console.log(error);
     }
   };
 
+  const onDelete = async () => {
+    if (selectedCategory) {
+      setIsDeleting(true);
+      try {
+        await deleteCategory({ id: selectedCategory });
+        setIsDeleting(false);
+        setIsAlertOpen(false);
+        setSelectedCategory(undefined);
+        form.setValue("category", "");
+      } catch (error) {
+        setIsDeleting(false);
+        console.log(error);
+      }
+    }
+  };
+
   return (
     <div>
+      <CategoryAlertModal
+        isOpen={isAlertOpen}
+        onClose={() => setIsAlertOpen(false)}
+        onConfirm={onDelete}
+        loading={isDeleting}
+      />
       <h1>AddItem</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -148,6 +172,7 @@ const AddItem = () => {
                               onSelect={() => {
                                 form.setValue("category", category._id);
                               }}
+                              className={"group"}
                             >
                               <Check
                                 className={cn(
@@ -158,6 +183,17 @@ const AddItem = () => {
                                 )}
                               />
                               {category.name}
+                              <Trash
+                                className={
+                                  "ml-auto h-4 w-4 cursor-pointer opacity-0 transition duration-200 ease-in-out group-hover:opacity-100"
+                                }
+                                color={"red"}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setIsAlertOpen(true);
+                                  setSelectedCategory(category._id);
+                                }}
+                              />
                             </CommandItem>
                           ))}
                         </CommandGroup>

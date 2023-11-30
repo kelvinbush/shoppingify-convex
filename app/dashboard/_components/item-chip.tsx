@@ -3,11 +3,12 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { useNav } from "@/hooks/useNav";
-import { useListStore } from "@/hooks/use-list";
 
 const ItemChip = ({ name, id }: { name: string; id: string }) => {
   const { onSetActive, active } = useNav();
-  const { addItem } = useListStore();
+  const addItem = (id: string, name: string) => {
+    console.log("add item", id, name);
+  };
   return (
     <div
       onClick={() => onSetActive("view-item", id)}

@@ -76,24 +76,26 @@ export const archiveCategory = mutation({
       throw new Error("Category already archived");
 
     const archiveActiveItems = async (categoryId: Id<"categories">) => {
-      const activeItems = await ctx.db
+      const allItems = await ctx.db
         .query("items")
         .withIndex("by_category", (q) => q.eq("categoryId", categoryId))
-        .filter((q) => q.eq(q.field("isActive"), true))
         .collect();
 
+      if (allItems.length === 0) return await ctx.db.delete(args.id);
+
+      const activeItems = allItems.filter((item) => item.isActive);
+
+      if (activeItems.length === 0)
+        return await ctx.db.patch(args.id, { isActive: false });
+
       for (const item of activeItems) {
-        await ctx.db.patch(item._id, {
-          isActive: false,
-        });
+        await ctx.db.patch(item._id, { isActive: false });
       }
+
+      return await ctx.db.patch(args.id, { isActive: false });
     };
 
-    await archiveActiveItems(args.id);
-
-    return await ctx.db.patch(args.id, {
-      isActive: false,
-    });
+    return await archiveActiveItems(args.id);
   },
 });
 

@@ -1,92 +1,17 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import ListChip from "@/app/dashboard/_components/list-chip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useListStore } from "@/hooks/use-list";
 import { useNav } from "@/hooks/useNav";
 import { Input } from "@/components/ui/input";
-import CompleteItem from "@/app/dashboard/_components/complete-item";
 
 const ListShopping = () => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [postLoading, setPostLoading] = useState(false);
-  const [activeData, setActiveData] = useState<ShoppingList | null>(null);
-  const {
-    totalItems,
-    items,
-    setActiveItem,
-    activeItemId,
-    decrementItem,
-    incrementItem,
-    removeItem,
-    updateItem,
-    name,
-    setNewListName,
-  } = useListStore();
   const { onSetActive } = useNav();
-
-  const asyncFetch = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/active");
-      const data = await response.json();
-      if (data.result === null) {
-        setIsCompleting(false);
-      } else {
-        setIsCompleting(true);
-        setActiveData(data.result);
-      }
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      console.log(error);
-    }
-  };
-
-  const asyncPost = async () => {
-    setPostLoading(true);
-    try {
-      const response = await fetch("/api/active", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, items }),
-      });
-      await response.json();
-      setPostLoading(false);
-      asyncFetch();
-    } catch (error) {
-      console.log(error);
-      setPostLoading(false);
-    }
-  };
-
-  const asyncUpdate = async (listItemId: string) => {
-    setPostLoading(true);
-    try {
-      const response = await fetch("/api/active", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ listItemId }),
-      });
-      await response.json();
-      setPostLoading(false);
-      asyncFetch();
-    } catch (error) {
-      console.log(error);
-      setPostLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    asyncFetch();
-  }, []);
+  let name = "Shopping list";
+  let totalItems = 0;
 
   return (
     <div className={"h-full bg-[#FFF0DE] px-4 py-6"}>
@@ -121,7 +46,7 @@ const ListShopping = () => {
         {!loading && !isCompleting && totalItems === 0 && <EmptyList />}
         {!loading && !isCompleting && totalItems > 0 && (
           <div className={"mb-20 space-y-4 pr-4"}>
-            {items.map((item) => (
+            {/* {items.map((item) => (
               <ListChip
                 key={item.itemId}
                 id={item.itemId}
@@ -135,13 +60,13 @@ const ListShopping = () => {
                 updateItem={updateItem}
                 isCompleting={isCompleting}
               />
-            ))}
+            ))}*/}
           </div>
         )}
         {loading && <p className={"text-center text-sm"}>Loading...</p>}
         {!loading && isCompleting && (
           <div className={"mb-20 space-y-4 pr-4"}>
-            {activeData?.listItems.map((item) =>
+            {/*{activeData?.listItems.map((item) =>
               CompleteItem({
                 id: item.id,
                 name: item.item.name,
@@ -150,7 +75,7 @@ const ListShopping = () => {
                 onPurchaseItem: async (listItemId) =>
                   await asyncUpdate(listItemId),
               }),
-            )}
+            )}*/}
           </div>
         )}
       </ScrollArea>
@@ -159,16 +84,16 @@ const ListShopping = () => {
       >
         <Input
           placeholder={"List name"}
-          value={name}
-          onChange={(e) => setNewListName(e.target.value)}
+          value={"name"}
+          onChange={(e) => console.log("change")}
           className={"flex-1"}
         />
         <Button
           className={
             "rounded-xl bg-primary-orange px-3 py-2 text-sm font-bold text-white"
           }
-          onClick={asyncPost}
-          disabled={loading || postLoading}
+          onClick={() => console.log("save")}
+          disabled={loading}
         >
           Save list
         </Button>

@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BarChart4, List, RotateCcw, ShoppingCart } from "lucide-react";
 import LinkItem from "@/app/dashboard/_components/link-iitems";
 import { useNav } from "@/hooks/useNav";
-import { useListStore } from "@/hooks/use-list";
 
 const sidebarLinks = [
   {
@@ -25,7 +24,7 @@ const sidebarLinks = [
 
 const Sidebar = () => {
   const { isMobile, onSetIsMobile } = useNav();
-  const { totalItems } = useListStore();
+  let totalItems = 0;
   return (
     <nav
       className={
