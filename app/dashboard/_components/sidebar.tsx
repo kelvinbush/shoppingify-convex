@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BarChart4, List, RotateCcw, ShoppingCart } from "lucide-react";
 import LinkItem from "@/app/dashboard/_components/link-iitems";
 import { useNav } from "@/hooks/useNav";
+import { useListStore } from "@/hooks/use-list";
 
 const sidebarLinks = [
   {
@@ -23,7 +24,8 @@ const sidebarLinks = [
 ];
 
 const Sidebar = () => {
-  const { isMobile, onSetIsMobile, count } = useNav();
+  const { isMobile, onSetIsMobile } = useNav();
+  const { totalItems } = useListStore();
   return (
     <nav
       className={
@@ -50,13 +52,13 @@ const Sidebar = () => {
         onClick={() => onSetIsMobile(!isMobile)}
       >
         <ShoppingCart color={"#FFFFFF"} />
-        {count > 0 && (
+        {totalItems > 0 && (
           <span
             className={
               "absolute -right-0.5 -top-0.5 rounded-full bg-red-500 px-1 text-xs text-white"
             }
           >
-            {count}
+            {totalItems}
           </span>
         )}
       </div>
