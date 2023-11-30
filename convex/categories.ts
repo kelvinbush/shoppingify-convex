@@ -19,9 +19,12 @@ export const createCategory = mutation({
       .query("categories")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("name"), args.name))
-      .collect();
+      .first();
 
-    if (existingCategory.length > 0) throw new Error("Category already exists");
+    if (existingCategory) {
+      if (existingCategory.isActive) throw new Error("Category already exists");
+      else return await ctx.db.patch(existingCategory._id, { isActive: true });
+    }
 
     return await ctx.db.insert("categories", {
       name: args.name,
@@ -46,6 +49,8 @@ export const updateCategory = mutation({
     const category = await ctx.db.get(args.id);
 
     if (!category) throw new Error("Category not found");
+
+    if (category.name === args.name) return category;
 
     if (category.userId !== userId) throw new Error("Not authorized");
 

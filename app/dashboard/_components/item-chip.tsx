@@ -3,8 +3,9 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { useNav } from "@/hooks/useNav";
+import { Id } from "@/convex/_generated/dataModel";
 
-const ItemChip = ({ name, id }: { name: string; id: string }) => {
+const ItemChip = ({ name, id }: { name: string; id: Id<"items"> }) => {
   const { onSetActive, active } = useNav();
   const addItem = (id: string, name: string) => {
     console.log("add item", id, name);

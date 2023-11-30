@@ -40,11 +40,9 @@ export const CategoryModal = () => {
   const onSubmit = async (values: z.infer<typeof schema>) => {
     setLoading(true);
     try {
-      const response = await create(values);
-      if (response) {
-        toast.success("Category created!");
-        categoryModal.onClose();
-      }
+      await create(values);
+      toast.success("Category created!");
+      categoryModal.onClose();
     } catch (error) {
       if (error instanceof Error && error.message.includes("already exists")) {
         toast.error("Category already exists");

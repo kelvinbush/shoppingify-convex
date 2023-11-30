@@ -37,6 +37,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import CategoryAlertModal from "@/components/modals/category-alert-modal";
+import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters" }),
@@ -54,6 +55,7 @@ type AddItemFormValues = z.infer<typeof formSchema>;
 const AddItem = () => {
   const categories = useQuery(api.categories.getCategories);
   const deleteCategory = useMutation(api.categories.archiveCategory);
+  const createItem = useMutation(api.items.create);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -67,10 +69,22 @@ const AddItem = () => {
 
   const onSubmit = async (data: AddItemFormValues) => {
     try {
-      console.log({ data });
-      form.reset();
+      setLoading(true);
+      const input = {
+        ...data,
+        categoryId: data.category as Id<"categories">,
+      };
+      const { category, ...rest } = input;
+      const response = await createItem(rest);
+      setLoading(false);
+      if (response) {
+        form.reset();
+        toast.success("Item created!");
+      }
     } catch (error) {
+      setLoading(false);
       console.log(error);
+      toast.error("Failed to create item");
     }
   };
 
@@ -232,10 +246,10 @@ const AddItem = () => {
               {loading ? (
                 <div className={"flex items-center justify-center"}>
                   <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                  Creating category....
+                  Saving....
                 </div>
               ) : (
-                "Continue"
+                "Save"
               )}
             </Button>
           </div>
