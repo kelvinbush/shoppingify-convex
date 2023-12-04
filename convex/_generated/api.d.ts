@@ -16,6 +16,8 @@ import type {
 } from "convex/server";
 import type * as categories from "../categories";
 import type * as items from "../items";
+import type * as listItems from "../listItems";
+import type * as shoppingLists from "../shoppingLists";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -28,6 +30,8 @@ import type * as items from "../items";
 declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   items: typeof items;
+  listItems: typeof listItems;
+  shoppingLists: typeof shoppingLists;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

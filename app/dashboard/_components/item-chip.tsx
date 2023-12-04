@@ -8,7 +8,7 @@ import { Id } from "@/convex/_generated/dataModel";
 const ItemChip = ({ name, id }: { name: string; id: Id<"items"> }) => {
   const { onSetActive, active } = useNav();
   const addItem = (id: string, name: string) => {
-    console.log("add item", id, name);
+    onSetActive("view-item", id);
   };
   return (
     <div
@@ -23,9 +23,9 @@ const ItemChip = ({ name, id }: { name: string; id: Id<"items"> }) => {
         size={24}
         className={"basis-[24px] cursor-pointer self-start"}
         onClick={(e) => {
+          e.stopPropagation();
           addItem(id, name);
           active !== "list" && onSetActive("list");
-          e.stopPropagation();
         }}
       />
     </div>
