@@ -32,6 +32,7 @@ export default defineSchema({
     isActive: v.boolean(),
     cancelled: v.boolean(),
     completed: v.boolean(),
+    isCompleting: v.boolean(),
   })
     .index("by_user", ["userId"])
     .index("by_user_and_active", ["userId", "isActive"]),

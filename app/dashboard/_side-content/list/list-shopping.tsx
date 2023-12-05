@@ -3,15 +3,93 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useNav } from "@/hooks/useNav";
 import { Input } from "@/components/ui/input";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useNav } from "@/hooks/useNav";
+import { toast } from "react-hot-toast";
+import ListChip from "@/app/dashboard/_components/list-chip";
+import { Id } from "@/convex/_generated/dataModel";
+import CompleteItem from "@/app/dashboard/_components/complete-item";
 
 const ListShopping = () => {
-  const [isCompleting, setIsCompleting] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const shoppingList = useQuery(api.shoppingLists.active);
+  const create = useMutation(api.shoppingLists.create);
+  const remove = useMutation(api.listItems.remove);
+  const increment = useMutation(api.listItems.increment);
+  const decrement = useMutation(api.listItems.decrement);
+  const update = useMutation(api.listItems.update);
+  const purchase = useMutation(api.listItems.purchase);
+  const updateList = useMutation(api.shoppingLists.update);
+  const saveList = useMutation(api.shoppingLists.save);
   const { onSetActive } = useNav();
-  let name = "Shopping list";
-  let totalItems = 0;
+  const [activeItemId, setActiveItemId] = useState("0");
+  const [input, setInput] = useState("");
+
+  if (shoppingList === undefined) return <div>Loading...</div>;
+
+  const createList = async () => {
+    try {
+      await create();
+    } catch (e) {
+      toast.error("Failed to create");
+    }
+  };
+
+  if (shoppingList === null) {
+    createList();
+    return <div>Loading......</div>;
+  }
+
+  const incrementItem = async (listItemId: Id<"listItems">) => {
+    try {
+      await increment({ id: listItemId });
+    } catch (e) {
+      toast.error("Failed to increment item");
+    }
+  };
+  const decrementItem = async (listItemId: Id<"listItems">) => {
+    try {
+      await decrement({ id: listItemId });
+    } catch (e) {
+      toast.error("Failed to decrement item");
+    }
+  };
+  const removeItem = async (listItemId: Id<"listItems">) => {
+    try {
+      await remove({ id: listItemId });
+    } catch (e) {
+      toast.error("Failed to remove item");
+    }
+  };
+  const updateItem = async (listItemId: Id<"listItems">, quantity: number) => {
+    try {
+      await update({ id: listItemId, quantity });
+    } catch (e) {
+      toast.error("Failed to update item");
+    }
+  };
+  const purchaseItem = async (listItemId: Id<"listItems">) => {
+    try {
+      await purchase({ id: listItemId });
+    } catch (e) {
+      toast.error("Failed to complete item");
+    }
+  };
+  const updateListName = async (id: Id<"shoppingLists">, name: string) => {
+    try {
+      await updateList({ id, name });
+    } catch (e) {
+      toast.error("Failed to update list name");
+    }
+  };
+  const saveShopList = async (id: Id<"shoppingLists">) => {
+    try {
+      await saveList({ id });
+    } catch (e) {
+      toast.error("Failed to update save list");
+    }
+  };
 
   return (
     <div className={"h-full bg-[#FFF0DE] px-4 py-6"}>
@@ -41,41 +119,42 @@ const ListShopping = () => {
           </Button>
         </div>
       </div>
-      <h3 className={"mt-3 text-xl font-bold"}>{name}</h3>
+      <h3 className={"mt-3 text-xl font-bold"}>{shoppingList.name}</h3>
       <ScrollArea className={"h-[71vh]"}>
-        {!loading && !isCompleting && totalItems === 0 && <EmptyList />}
-        {!loading && !isCompleting && totalItems > 0 && (
-          <div className={"mb-20 space-y-4 pr-4"}>
-            {/* {items.map((item) => (
-              <ListChip
-                key={item.itemId}
-                id={item.itemId}
-                name={item.name}
-                quantity={item.quantity}
-                isActive={activeItemId === item.itemId}
-                onSetIsActive={setActiveItem}
-                incrementItem={incrementItem}
-                decrementItem={decrementItem}
-                removeItem={removeItem}
-                updateItem={updateItem}
-                isCompleting={isCompleting}
-              />
-            ))}*/}
-          </div>
+        {shoppingList.listItems.length === 0 ? (
+          <EmptyList />
+        ) : (
+          !shoppingList.isCompleting && (
+            <div className={"mb-20 space-y-4 pr-4"}>
+              {shoppingList.listItems.map((listItem) => (
+                <ListChip
+                  key={listItem._id}
+                  id={listItem._id}
+                  name={listItem.item.name}
+                  quantity={listItem.quantity}
+                  isActive={activeItemId === listItem._id}
+                  onSetIsActive={setActiveItemId}
+                  incrementItem={incrementItem}
+                  decrementItem={decrementItem}
+                  removeItem={removeItem}
+                  updateItem={updateItem}
+                />
+              ))}
+            </div>
+          )
         )}
-        {loading && <p className={"text-center text-sm"}>Loading...</p>}
-        {!loading && isCompleting && (
+        {shoppingList.isCompleting && (
           <div className={"mb-20 space-y-4 pr-4"}>
-            {/*{activeData?.listItems.map((item) =>
+            {shoppingList.listItems.map((listItem) =>
               CompleteItem({
-                id: item.id,
-                name: item.item.name,
-                quantity: item.quantity,
-                isPurchased: item.isPurchased,
+                id: listItem._id,
+                name: listItem.item.name,
+                quantity: listItem.quantity,
+                isPurchased: listItem.isCompleted,
                 onPurchaseItem: async (listItemId) =>
-                  await asyncUpdate(listItemId),
+                  await purchaseItem(listItemId),
               }),
-            )}*/}
+            )}
           </div>
         )}
       </ScrollArea>
@@ -84,16 +163,22 @@ const ListShopping = () => {
       >
         <Input
           placeholder={"List name"}
-          value={"name"}
-          onChange={(e) => console.log("change")}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           className={"flex-1"}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              input !== "" && updateListName(shoppingList._id, input);
+            }
+          }}
         />
         <Button
           className={
             "rounded-xl bg-primary-orange px-3 py-2 text-sm font-bold text-white"
           }
-          onClick={() => console.log("save")}
-          disabled={loading}
+          onClick={() => saveShopList(shoppingList._id)}
+          disabled={shoppingList.listItems.length < 1}
         >
           Save list
         </Button>

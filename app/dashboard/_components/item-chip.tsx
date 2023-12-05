@@ -4,12 +4,29 @@ import React from "react";
 import { Plus } from "lucide-react";
 import { useNav } from "@/hooks/useNav";
 import { Id } from "@/convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "react-hot-toast";
 
-const ItemChip = ({ name, id }: { name: string; id: Id<"items"> }) => {
+const ItemChip = ({
+  name,
+  id,
+  listId,
+}: {
+  name: string;
+  id: Id<"items">;
+  listId: Id<"shoppingLists">;
+}) => {
+  const create = useMutation(api.listItems.create);
   const { onSetActive, active } = useNav();
-  const addItem = (id: string, name: string) => {
-    onSetActive("view-item", id);
+  const addToList = async () => {
+    try {
+      await create({ shoppingListId: listId, itemId: id, quantity: 1 });
+    } catch (e) {
+      toast.error("Failed to increment item");
+    }
   };
+
   return (
     <div
       onClick={() => onSetActive("view-item", id)}
@@ -21,10 +38,12 @@ const ItemChip = ({ name, id }: { name: string; id: Id<"items"> }) => {
       <Plus
         color={"#C1C1C4"}
         size={24}
-        className={"basis-[24px] cursor-pointer self-start"}
+        className={
+          "basis-[24px] cursor-pointer self-start rounded-full hover:bg-primary-orange hover:fill-white"
+        }
         onClick={(e) => {
           e.stopPropagation();
-          addItem(id, name);
+          addToList();
           active !== "list" && onSetActive("list");
         }}
       />

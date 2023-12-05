@@ -1,18 +1,18 @@
 import React from "react";
 import { Minus, Plus, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface ListChipProps {
-  id: string;
+  id: Id<"listItems">;
   name: string;
   quantity: number;
   isActive: boolean;
-  isCompleting: boolean;
-  incrementItem: (cartItemId: string) => void;
-  decrementItem: (cartItemId: string) => void;
-  removeItem: (cartItemId: string) => void;
-  onSetIsActive: (cartItemId: string) => void;
-  updateItem: (cartItemId: string, quantity: number) => void;
+  incrementItem: (listItemId: Id<"listItems">) => void;
+  decrementItem: (listItemId: Id<"listItems">) => void;
+  removeItem: (listItemId: Id<"listItems">) => void;
+  onSetIsActive: (listItemId: string) => void;
+  updateItem: (listItemId: Id<"listItems">, quantity: number) => void;
 }
 
 const ListChip = ({
@@ -85,10 +85,10 @@ const Chip = ({
   updateItem,
 }: {
   quantity: number;
-  id: string;
+  id: Id<"listItems">;
   onSetIsActive: (isActive: string) => void;
   isActive?: boolean;
-  updateItem?: (cartItemId: string, quantity: number) => void;
+  updateItem?: (listItemId: Id<"listItems">, quantity: number) => void;
 }) => (
   <div
     className={cn(

@@ -65,7 +65,7 @@ export const create = mutation({
 
     if (existingListItem) {
       return await ctx.db.patch(existingListItem._id, {
-        quantity: args.quantity,
+        quantity: existingListItem.quantity + 1,
       });
     }
 

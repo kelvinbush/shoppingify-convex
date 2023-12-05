@@ -1,13 +1,14 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface CompleteChipProps {
-  id: string;
+  id: Id<"listItems">;
   name: string;
   quantity: number;
   isPurchased: boolean;
-  onPurchaseItem: (listItemId: string) => void;
+  onPurchaseItem: (listItemId: Id<"listItems">) => void;
 }
 
 const CompleteItem = ({
