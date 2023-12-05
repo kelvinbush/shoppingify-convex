@@ -11,20 +11,27 @@ import { toast } from "react-hot-toast";
 import ListChip from "@/app/dashboard/_components/list-chip";
 import { Id } from "@/convex/_generated/dataModel";
 import CompleteItem from "@/app/dashboard/_components/complete-item";
+import { Pencil } from "lucide-react";
 
 const ListShopping = () => {
   const shoppingList = useQuery(api.shoppingLists.active);
   const create = useMutation(api.shoppingLists.create);
+  const saveList = useMutation(api.shoppingLists.save);
+  const clearList = useMutation(api.shoppingLists.clear);
+  const updateList = useMutation(api.shoppingLists.update);
+  const cancel = useMutation(api.shoppingLists.cancel);
+  const complete = useMutation(api.shoppingLists.complete);
+
   const remove = useMutation(api.listItems.remove);
   const increment = useMutation(api.listItems.increment);
   const decrement = useMutation(api.listItems.decrement);
   const update = useMutation(api.listItems.update);
   const purchase = useMutation(api.listItems.purchase);
-  const updateList = useMutation(api.shoppingLists.update);
-  const saveList = useMutation(api.shoppingLists.save);
+
   const { onSetActive } = useNav();
   const [activeItemId, setActiveItemId] = useState("0");
   const [input, setInput] = useState("");
+  const [isEdit, setIsEdit] = useState(false);
 
   if (shoppingList === undefined) return <div>Loading...</div>;
 
@@ -79,6 +86,7 @@ const ListShopping = () => {
   const updateListName = async (id: Id<"shoppingLists">, name: string) => {
     try {
       await updateList({ id, name });
+      setIsEdit(false);
     } catch (e) {
       toast.error("Failed to update list name");
     }
@@ -88,6 +96,31 @@ const ListShopping = () => {
       await saveList({ id });
     } catch (e) {
       toast.error("Failed to update save list");
+    }
+  };
+
+  const clearShopList = async (id: Id<"shoppingLists">) => {
+    try {
+      await clearList();
+    } catch (e) {
+      console.log({ e });
+      toast.error("Failed to clear");
+    }
+  };
+
+  const cancelShopList = async (id: Id<"shoppingLists">) => {
+    try {
+      await cancel({ id });
+    } catch (e) {
+      toast.error("Failed to clear");
+    }
+  };
+
+  const completeShopList = async (id: Id<"shoppingLists">) => {
+    try {
+      await complete({ id });
+    } catch (e) {
+      toast.error("Failed to clear");
     }
   };
 
@@ -119,7 +152,42 @@ const ListShopping = () => {
           </Button>
         </div>
       </div>
-      <h3 className={"mt-3 text-xl font-bold"}>{shoppingList.name}</h3>
+      {isEdit ? (
+        <div className={"my-3 flex items-center justify-between gap-x-4"}>
+          <Input
+            placeholder={"List name"}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className={
+              "h-full flex-1 py-3 outline-0 ring-0 focus:border-primary-orange focus-visible:ring-0 focus-visible:ring-offset-0"
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                input !== "" && updateListName(shoppingList._id, input);
+              }
+            }}
+          />
+          <Button
+            className={
+              "rounded-l bg-primary-orange py-[22px] text-sm font-bold text-white"
+            }
+            onClick={() => updateListName(shoppingList._id, input)}
+            disabled={input === "" || shoppingList.name === input}
+          >
+            Save
+          </Button>
+        </div>
+      ) : (
+        <div className={"my-3 flex items-center justify-between"}>
+          <h3 className={"mt-3 text-xl font-bold"}>{shoppingList.name}</h3>
+          <Pencil
+            size={18}
+            className={"cursor-pointer"}
+            onClick={() => setIsEdit(true)}
+          />
+        </div>
+      )}
       <ScrollArea className={"h-[71vh]"}>
         {shoppingList.listItems.length === 0 ? (
           <EmptyList />
@@ -158,30 +226,51 @@ const ListShopping = () => {
           </div>
         )}
       </ScrollArea>
+
       <div
-        className={"fixed bottom-0 right-0 flex w-[400px] gap-x-2 bg-white p-4"}
+        className={"fixed bottom-0 right-0 flex w-[400px] gap-x-4 bg-white p-4"}
       >
-        <Input
-          placeholder={"List name"}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className={"flex-1"}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              input !== "" && updateListName(shoppingList._id, input);
-            }
-          }}
-        />
-        <Button
-          className={
-            "rounded-xl bg-primary-orange px-3 py-2 text-sm font-bold text-white"
-          }
-          onClick={() => saveShopList(shoppingList._id)}
-          disabled={shoppingList.listItems.length < 1}
-        >
-          Save list
-        </Button>
+        {shoppingList.isCompleting ? (
+          <div className={"flex gap-x-4"}>
+            <Button
+              className={
+                "rounded-xl bg-neutral-900 px-3 py-2 text-sm font-bold text-white"
+              }
+              onClick={() => cancelShopList(shoppingList._id)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className={
+                "rounded-xl bg-primary-orange px-3 py-2 text-sm font-bold text-white"
+              }
+              onClick={() => completeShopList(shoppingList._id)}
+            >
+              Complete
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Button
+              className={
+                "rounded-xl bg-neutral-900 px-3 py-2 text-sm font-bold text-white"
+              }
+              onClick={() => clearShopList(shoppingList._id)}
+              disabled={shoppingList.listItems.length < 1}
+            >
+              Clear
+            </Button>
+            <Button
+              className={
+                "rounded-xl bg-primary-orange px-3 py-2 text-sm font-bold text-white"
+              }
+              onClick={() => saveShopList(shoppingList._id)}
+              disabled={shoppingList.listItems.length < 1}
+            >
+              Save list
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

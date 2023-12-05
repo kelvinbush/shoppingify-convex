@@ -192,6 +192,15 @@ export const create = mutation({
 
     const userId = identity.subject;
 
+    const hasActive = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_and_active", (q) =>
+        q.eq("userId", userId).eq("isActive", true),
+      )
+      .first();
+
+    if (hasActive) return hasActive;
+
     return await ctx.db.insert("shoppingLists", {
       name: "Shopping List",
       userId,
@@ -200,5 +209,38 @@ export const create = mutation({
       completed: false,
       isCompleting: false,
     });
+  },
+});
+export const clear = mutation({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) throw new Error("Not authenticated");
+
+    const userId = identity.subject;
+
+    const shoppingList = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_and_active", (q) =>
+        q.eq("userId", userId).eq("isActive", true),
+      )
+      .first();
+
+    if (!shoppingList) throw new Error("No shopping list found");
+
+    const listItems = await ctx.db
+      .query("listItems")
+      .withIndex("by_shopping_list", (q) =>
+        q.eq("shoppingListId", shoppingList._id),
+      )
+      .collect();
+
+    if (listItems.length > 0) {
+      for (const listItem of listItems) {
+        await ctx.db.delete(listItem._id);
+      }
+    }
+
+    return;
   },
 });
