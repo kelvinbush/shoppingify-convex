@@ -217,3 +217,54 @@ export const update = mutation({
     });
   },
 });
+
+export const addItem = mutation({
+  args: {
+    id: v.id("items"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) throw new Error("Not Authenticated!");
+
+    const userId = identity.subject;
+
+    const item = await ctx.db.get(args.id);
+
+    if (!item) throw new Error("Item not found!");
+
+    if (item.userId !== userId) throw new Error("Not authorized");
+
+    if (!item.isActive) throw new Error("Item already inactive");
+
+    const shoppingList = await ctx.db
+      .query("shoppingLists")
+      .withIndex("by_user_and_active", (q) =>
+        q.eq("userId", userId).eq("isActive", true),
+      )
+      .first();
+
+    if (!shoppingList) throw new Error("No active shopping list found!");
+
+    const existingListItem = await ctx.db
+      .query("listItems")
+      .withIndex("by_shopping_list", (q) =>
+        q.eq("shoppingListId", shoppingList._id),
+      )
+      .filter((q) => q.eq(q.field("itemId"), args.id))
+      .first();
+
+    if (existingListItem) {
+      return await ctx.db.patch(existingListItem._id, {
+        quantity: existingListItem.quantity + 1,
+      });
+    }
+
+    return await ctx.db.insert("listItems", {
+      itemId: args.id,
+      shoppingListId: shoppingList._id,
+      quantity: 1,
+      isCompleted: false,
+    });
+  },
+});

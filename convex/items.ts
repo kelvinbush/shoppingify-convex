@@ -48,7 +48,6 @@ export const create = mutation({
     });
   },
 });
-
 export const list = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -74,5 +73,46 @@ export const list = query({
         };
       }),
     );
+  },
+});
+export const get = query({
+  args: {
+    id: v.id("items"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const item = await ctx.db.get(args.id);
+    if (!item) throw new Error("Item not found");
+
+    if (item.userId !== identity.subject) throw new Error("Not authorized");
+
+    const category = await ctx.db.get(item.categoryId);
+    if (!category) throw new Error("Category not found");
+
+    return {
+      ...item,
+      category,
+    };
+  },
+});
+
+export const archive = mutation({
+  args: {
+    id: v.id("items"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const item = await ctx.db.get(args.id);
+    if (!item) throw new Error("Item not found");
+
+    if (item.userId !== identity.subject) throw new Error("Not authorized");
+
+    if (!item.isActive) throw new Error("Item already inactive");
+
+    return await ctx.db.patch(args.id, { isActive: false });
   },
 });
