@@ -12,6 +12,8 @@ import ListChip from "@/app/dashboard/_components/list-chip";
 import { Id } from "@/convex/_generated/dataModel";
 import CompleteItem from "@/app/dashboard/_components/complete-item";
 import { Pencil } from "lucide-react";
+import PrimaryButton from "@/app/dashboard/_components/PrimaryButton";
+import SecondaryBtn from "@/app/dashboard/_components/SecondaryBtn";
 
 const ListShopping = () => {
   const shoppingList = useQuery(api.shoppingLists.active);
@@ -232,43 +234,35 @@ const ListShopping = () => {
       >
         {shoppingList.isCompleting ? (
           <div className={"flex gap-x-4"}>
-            <Button
-              className={
-                "rounded-xl bg-neutral-900 px-3 py-2 text-sm font-bold text-white"
-              }
+            <SecondaryBtn
               onClick={() => cancelShopList(shoppingList._id)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className={
-                "rounded-xl bg-primary-orange px-3 py-2 text-sm font-bold text-white"
-              }
+              disabled={false}
+              loading={false}
+              title={"Cancel"}
+            />
+            <PrimaryButton
+              title={"Complete"}
+              loading={false}
+              disabled={false}
               onClick={() => completeShopList(shoppingList._id)}
-            >
-              Complete
-            </Button>
+              className={"ml-8 border-2 border-transparent bg-[#56CCF2]"}
+            />
           </div>
         ) : (
           <>
-            <Button
-              className={
-                "rounded-xl bg-neutral-900 px-3 py-2 text-sm font-bold text-white"
-              }
+            <SecondaryBtn
               onClick={() => clearShopList(shoppingList._id)}
               disabled={shoppingList.listItems.length < 1}
-            >
-              Clear
-            </Button>
-            <Button
-              className={
-                "rounded-xl bg-primary-orange px-3 py-2 text-sm font-bold text-white"
-              }
+              loading={false}
+              title={"Clear"}
+            />
+            <PrimaryButton
               onClick={() => saveShopList(shoppingList._id)}
+              loading={false}
               disabled={shoppingList.listItems.length < 1}
-            >
-              Save list
-            </Button>
+              title={"Save"}
+              className={"ml-8 border-2 border-transparent"}
+            />
           </>
         )}
       </div>
