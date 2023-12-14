@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import { ModalProvider } from "@/providers/modal-provider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/providers/toast-provider";
 import { ConvexClientProvider } from "@/providers/convex-client-provider";
 
@@ -24,6 +25,7 @@ export default function RootLayout({
           <ToastProvider />
           <ModalProvider />
           {children}
+          <SpeedInsights />
         </ConvexClientProvider>
       </body>
     </html>
