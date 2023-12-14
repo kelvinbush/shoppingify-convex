@@ -5,6 +5,7 @@ import { ModalProvider } from "@/providers/modal-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/providers/toast-provider";
 import { ConvexClientProvider } from "@/providers/convex-client-provider";
+import { Analytics } from "@vercel/analytics/react";
 
 const quicksand = Quicksand({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
           <ModalProvider />
           {children}
           <SpeedInsights />
+          <Analytics />
         </ConvexClientProvider>
       </body>
     </html>
