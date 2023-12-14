@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const purchase = mutation({
@@ -217,7 +217,6 @@ export const update = mutation({
     });
   },
 });
-
 export const addItem = mutation({
   args: {
     id: v.id("items"),
@@ -266,5 +265,56 @@ export const addItem = mutation({
       quantity: 1,
       isCompleted: false,
     });
+  },
+});
+
+export const getItems = query({
+  args: {
+    shoppingListId: v.id("shoppingLists"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) throw new Error("Not Authenticated!");
+
+    const userId = identity.subject;
+
+    const shoppingList = await ctx.db.get(args.shoppingListId);
+
+    if (!shoppingList) throw new Error("Shopping list not found!");
+
+    if (shoppingList.userId !== userId) throw new Error("Not authorized");
+
+    const listItems = await ctx.db
+      .query("listItems")
+      .withIndex("by_shopping_list", (q) =>
+        q.eq("shoppingListId", shoppingList._id),
+      )
+      .collect();
+
+    const listItemsWithItems = await Promise.all(
+      listItems.map(async (listItem) => {
+        const item = await ctx.db.get(listItem.itemId);
+        if (!item) return null;
+        const category = await ctx.db.get(item.categoryId);
+        if (!category) return null;
+        return {
+          ...listItem,
+          item: {
+            ...item,
+            categoryName: category.name,
+          },
+        };
+      }),
+    );
+
+    const notEmpty = <TValue>(
+      value: TValue | null | undefined,
+    ): value is TValue => value !== null && value !== undefined;
+
+    return {
+      ...shoppingList,
+      listItems: listItemsWithItems.filter(notEmpty),
+    };
   },
 });
