@@ -4,13 +4,14 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import ItemChip from "@/app/dashboard/_components/item-chip";
 import { toast } from "react-hot-toast";
+import { Spinner } from "../spinner";
 
 const Page = () => {
   const items = useQuery(api.items.list);
   const shoppingList = useQuery(api.shoppingLists.active);
   const create = useMutation(api.shoppingLists.create);
 
-  if (items === undefined) return <div>Loading...</div>;
+  if (items === undefined) return <Spinner/>;
   if (shoppingList === undefined) return <div>Loading...</div>;
 
   const createList = async () => {
